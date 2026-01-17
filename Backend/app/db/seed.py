@@ -43,8 +43,8 @@ def create_sample_data():
         # Create sample courses
         course1 = Course(
             name="Curso de React",
-            description="Aprende React desde cero hasta convertirte en un desarrollador profesional",
-            thumbnail="https://via.placeholder.com/300x200?text=React+Course",
+            description="Aprende React desde cero hasta convertirte en un desarrollador profesional. Domina hooks, componentes y el ecosistema moderno de React.",
+            thumbnail="https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800&h=500&fit=crop",
             slug="curso-de-react",
             created_at=datetime.utcnow(),
             updated_at=datetime.utcnow(),
@@ -52,8 +52,8 @@ def create_sample_data():
 
         course2 = Course(
             name="Curso de Python",
-            description="Domina Python y sus frameworks más populares",
-            thumbnail="https://via.placeholder.com/300x200?text=Python+Course",
+            description="Domina Python y sus frameworks más populares. Desde lo básico hasta Django, FastAPI y análisis de datos.",
+            thumbnail="https://images.unsplash.com/photo-1526379095098-d400fd0bf935?w=800&h=500&fit=crop",
             slug="curso-de-python",
             created_at=datetime.utcnow(),
             updated_at=datetime.utcnow(),
@@ -61,8 +61,8 @@ def create_sample_data():
 
         course3 = Course(
             name="Curso de JavaScript",
-            description="JavaScript moderno y sus mejores prácticas",
-            thumbnail="https://via.placeholder.com/300x200?text=JavaScript+Course",
+            description="JavaScript moderno y sus mejores prácticas. ES6+, async/await, y patrones de diseño profesionales.",
+            thumbnail="https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=800&h=500&fit=crop",
             slug="curso-de-javascript",
             created_at=datetime.utcnow(),
             updated_at=datetime.utcnow(),

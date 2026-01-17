@@ -11,14 +11,10 @@ class RatingRequest(BaseModel):
     Schema for creating or updating a course rating.
 
     Validation:
-    - user_id must be positive integer
     - rating must be between 1 and 5 (inclusive)
+
+    Note: user_id is obtained from JWT token, not from request body.
     """
-    user_id: int = Field(
-        ...,
-        gt=0,
-        description="ID of the user submitting the rating"
-    )
     rating: int = Field(
         ...,
         ge=1,

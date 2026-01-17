@@ -1,8 +1,10 @@
 from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from typing import List
 from app.core.config import settings
+from app.core.dependencies import CurrentUser
 from app.db.base import engine, get_db
 from app.services.course_service import CourseService
 from app.schemas.rating import (
@@ -11,6 +13,7 @@ from app.schemas.rating import (
     RatingStatsResponse,
     ErrorResponse
 )
+from app.routers import auth_router
 
 app = FastAPI(
     title=settings.project_name,
@@ -34,6 +37,10 @@ app = FastAPI(
     """,
     openapi_tags=[
         {
+            "name": "auth",
+            "description": "Authentication operations"
+        },
+        {
             "name": "courses",
             "description": "Operations with courses"
         },
@@ -47,6 +54,24 @@ app = FastAPI(
         }
     ]
 )
+
+# CORS configuration
+origins = [
+    "http://localhost:3000",
+    settings.frontend_url,
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Include routers
+app.include_router(auth_router)
 
 
 def get_course_service(db: Session = Depends(get_db)) -> CourseService:
@@ -151,16 +176,20 @@ def get_class_by_id(class_id: int, db: Session = Depends(get_db)) -> dict:
     responses={
         201: {"description": "Rating created successfully"},
         400: {"model": ErrorResponse, "description": "Validation error"},
+        401: {"description": "Not authenticated"},
         404: {"model": ErrorResponse, "description": "Course not found"}
     }
 )
 def add_course_rating(
     course_id: int,
     rating_data: RatingRequest,
+    current_user: CurrentUser,
     course_service: CourseService = Depends(get_course_service)
 ) -> RatingResponse:
     """
     Add a new rating to a course or update existing rating.
+
+    Requires authentication via JWT token.
 
     Business Logic:
     - If user already has an active rating: UPDATE existing
@@ -168,20 +197,19 @@ def add_course_rating(
     - Returns HTTP 201 for new ratings
 
     Request Body:
-    - user_id: User ID (positive integer)
     - rating: Rating value (1-5)
 
     Example:
         POST /courses/1/ratings
+        Authorization: Bearer <token>
         {
-            "user_id": 42,
             "rating": 5
         }
     """
     try:
         result = course_service.add_course_rating(
             course_id=course_id,
-            user_id=rating_data.user_id,
+            user_id=current_user.id,
             rating=rating_data.rating
         )
         return RatingResponse(**result)
@@ -343,49 +371,44 @@ def get_user_course_rating(
 
 
 @app.put(
-    "/courses/{course_id}/ratings/{user_id}",
+    "/courses/{course_id}/ratings",
     response_model=RatingResponse,
     tags=["ratings"],
     responses={
         200: {"description": "Rating updated successfully"},
         400: {"model": ErrorResponse, "description": "Validation error"},
+        401: {"description": "Not authenticated"},
         404: {"model": ErrorResponse, "description": "Rating not found"}
     }
 )
 def update_course_rating(
     course_id: int,
-    user_id: int,
     rating_data: RatingRequest,
+    current_user: CurrentUser,
     course_service: CourseService = Depends(get_course_service)
 ) -> RatingResponse:
     """
     Update an existing course rating.
 
+    Requires authentication via JWT token.
+
     Semantics: PUT = Update existing resource
     Fails with 404 if rating doesn't exist (use POST to create).
 
     Request Body:
-    - user_id: Must match path parameter (validation)
     - rating: New rating value (1-5)
 
     Example:
-        PUT /courses/1/ratings/42
+        PUT /courses/1/ratings
+        Authorization: Bearer <token>
         {
-            "user_id": 42,
             "rating": 3
         }
     """
-    # Validar que user_id del body coincide con user_id del path
-    if rating_data.user_id != user_id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="user_id in body must match user_id in path"
-        )
-
     try:
         result = course_service.update_course_rating(
             course_id=course_id,
-            user_id=user_id,
+            user_id=current_user.id,
             rating=rating_data.rating
         )
         return RatingResponse(**result)
@@ -397,38 +420,42 @@ def update_course_rating(
 
 
 @app.delete(
-    "/courses/{course_id}/ratings/{user_id}",
+    "/courses/{course_id}/ratings",
     status_code=status.HTTP_204_NO_CONTENT,
     tags=["ratings"],
     responses={
         204: {"description": "Rating deleted successfully"},
+        401: {"description": "Not authenticated"},
         404: {"model": ErrorResponse, "description": "Rating not found"}
     }
 )
 def delete_course_rating(
     course_id: int,
-    user_id: int,
+    current_user: CurrentUser,
     course_service: CourseService = Depends(get_course_service)
 ) -> None:
     """
     Delete (soft delete) a course rating.
+
+    Requires authentication via JWT token.
 
     Sets deleted_at timestamp, preserving data for historical analysis.
     Returns HTTP 204 No Content on success.
     Returns HTTP 404 if rating doesn't exist or already deleted.
 
     Example:
-        DELETE /courses/1/ratings/42
+        DELETE /courses/1/ratings
+        Authorization: Bearer <token>
 
         Response:
         HTTP 204 No Content
     """
-    success = course_service.delete_course_rating(course_id, user_id)
+    success = course_service.delete_course_rating(course_id, current_user.id)
 
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"No active rating found for user {user_id} on course {course_id}"
+            detail=f"No active rating found for user {current_user.id} on course {course_id}"
         )
 
     return None

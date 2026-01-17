@@ -1,5 +1,8 @@
-import { FC } from "react";
+"use client";
+
+import { FC, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { CourseDetail } from "@/types";
 import styles from "./CourseDetail.module.scss";
 
@@ -8,6 +11,8 @@ interface CourseDetailComponentProps {
 }
 
 export const CourseDetailComponent: FC<CourseDetailComponentProps> = ({ course }) => {
+  const [hasError, setHasError] = useState(false);
+
   const formatDuration = (duration: number) => {
     const hours = Math.floor(duration / 3600);
     const minutes = Math.floor((duration % 3600) / 60);
@@ -25,7 +30,21 @@ export const CourseDetailComponent: FC<CourseDetailComponentProps> = ({ course }
       </div>
       <div className={styles.header}>
         <div className={styles.thumbnailContainer}>
-          <img src={course.thumbnail} alt={course.title} className={styles.thumbnail} />
+          {hasError ? (
+            <div className={styles.fallbackImage}>
+              <span>{course.title?.charAt(0) || 'C'}</span>
+            </div>
+          ) : (
+            <Image
+              src={course.thumbnail}
+              alt={course.title || 'Curso'}
+              width={480}
+              height={300}
+              className={styles.thumbnail}
+              onError={() => setHasError(true)}
+              priority
+            />
+          )}
         </div>
         <div className={styles.courseInfo}>
           <h1 className={styles.title}>{course.title}</h1>

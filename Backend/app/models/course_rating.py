@@ -15,6 +15,7 @@ class CourseRating(BaseModel):
 
     Relationships:
     - Many ratings belong to one Course
+    - Many ratings belong to one User
     """
     __tablename__ = 'course_ratings'
 
@@ -27,6 +28,7 @@ class CourseRating(BaseModel):
     )
     user_id = Column(
         Integer,
+        ForeignKey('users.id'),
         nullable=False,
         index=True  # Ya creado en migración, documentado aquí
     )
@@ -41,6 +43,10 @@ class CourseRating(BaseModel):
     # Relationships
     course = relationship(
         "Course",
+        back_populates="ratings"
+    )
+    user = relationship(
+        "User",
         back_populates="ratings"
     )
 

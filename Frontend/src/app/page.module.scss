@@ -53,6 +53,10 @@
   letter-spacing: 0.1em;
   z-index: 3;
   user-select: none;
+
+  @media (max-width: 900px) {
+    display: none;
+  }
 }
 .verticalRight {
   position: fixed;
@@ -66,6 +70,10 @@
   letter-spacing: 0.1em;
   z-index: 3;
   user-select: none;
+
+  @media (max-width: 900px) {
+    display: none;
+  }
 }
 
 // Fondo de cuadrícula
@@ -80,18 +88,27 @@
 }
 
 .main {
-  max-width: 1100px;
+  max-width: 1400px;
   margin: 0 auto;
   z-index: 2;
   position: relative;
+  padding: 0 2rem 4rem;
+
+  @media (max-width: 600px) {
+    padding: 0 1rem 2rem;
+  }
 }
 
 .coursesGrid {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 420px));
   gap: 2.5rem;
   justify-content: center;
-  align-items: flex-start;
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
 }
 
 .courseCard {

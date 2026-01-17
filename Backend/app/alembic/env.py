@@ -22,6 +22,10 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from app.models.base import Base
+from app.core.config import settings
+
+# Override sqlalchemy.url from settings (reads from .env)
+config.set_main_option("sqlalchemy.url", settings.database_url)
 
 # Import all models so Alembic can detect them
 from app.models import *  # noqa
