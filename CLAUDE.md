@@ -151,5 +151,17 @@ cd Backend && make seed-fresh
 cd Backend && make logs
 ```
 
+## GitHub Actions - Claude Integration
+
+Este repositorio incluye integración con Claude AI para automatizar revisiones de código:
+
+### Workflows Disponibles
+- **Claude Code Review** (`claude-code-review.yml`): Revisión automática de PRs al abrir o actualizar
+- **Claude PR Assistant** (`claude.yml`): Responde a menciones `@claude` en issues y PRs
+
+### Uso
+- Los PRs reciben revisión automática de código
+- Menciona `@claude` en cualquier comentario para obtener ayuda
+
 Esta memoria contiene toda la información necesaria para continuar el desarrollo del proyecto Platziflix.
 - Cualquier comando que necesites ejecutar para el Backend debe ser dentro del contenedor de docker API, antes de ejecutarlo certifica que esté funcionando el contenedor y revisa el archivo makefile con los comandos que existen y úsalos
